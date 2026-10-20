@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ASHFALL: LAST SURVIVOR</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <section class="game-frame" aria-label="Jeu Ashfall">
+        <canvas id="game-canvas" width="960" height="540"></canvas>
+        <div class="hud">
+          <div class="hud-top">
+            <div class="brand"><span>ASHFALL</span><small>LAST SURVIVOR</small></div>
+            <div class="objective"><span>OBJECTIF ACTUEL</span><strong id="objective">Rejoindre l'abri des survivants</strong></div>
+            <div class="clock"><span id="time-of-day">JOUR 01 · 08:00</span><small id="zone-name">SECTEUR DES RUINES</small></div>
+          </div>
+          <div class="hud-bottom">
+            <div class="vitals">
+              <div class="vital"><span>VIE</span><div class="bar"><i id="health-bar" class="health"></i></div><b id="health-value">100</b></div>
+              <div class="vital"><span>ENDURANCE</span><div class="bar"><i id="stamina-bar" class="stamina"></i></div><b id="stamina-value">100</b></div>
+              <div class="vital"><span>FAIM</span><div class="bar"><i id="hunger-bar" class="hunger"></i></div><b id="hunger-value">82</b></div>
+              <div class="vital"><span>SOIF</span><div class="bar"><i id="thirst-bar" class="thirst"></i></div><b id="thirst-value">76</b></div>
+            </div>
+            <div class="equipment"><span>ÉQUIPEMENT</span><strong>◆ COUTEAU DE SURVIE</strong><small>WASD / FLÈCHES · SHIFT POUR COURIR · E INTERAGIR</small></div>
+          </div>
+          <div id="notification" class="notification" role="status"></div>
+        </div>
+        <div id="pause-panel" class="overlay hidden">
+          <div class="panel">
+            <p class="eyebrow">ASHFALL // SYSTÈME EN PAUSE</p>
+            <h1>PAUSE</h1>
+            <p>Le monde attend. Reprenez votre exploration quand vous êtes prêt.</p>
+            <button id="resume-button">REPRENDRE <span>ÉCHAP</span></button>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

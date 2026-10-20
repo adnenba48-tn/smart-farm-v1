@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Farm 1 — Zone 1 Monitoring & Precision Agriculture</title>
+  
+  <!-- Favicon SVG -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2352b788'><path d='M12 2L9 8h6l-3-6zm0 20c-5.5 0-10-4.5-10-10 0-4.5 3-8.3 7-9.5V7c0 2.2 1.8 4 4 4s4-1.8 4-4V2.5c4 1.2 7 5 7 9.5 0 5.5-4.5 10-10 10z'/></svg>">
+
+  <!-- Core Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Chart.js (Local with CDN Fallback) -->
+  <script src="js/chart.umd.min.js"></script>
+  <script>
+    if (typeof Chart === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');
+    }
+  </script>
+
+  <!-- Platform Stylesheet -->
+  <link rel="stylesheet" href="css/smart_farm.css">
+</head>
+<body>
+
+  <!-- TOAST CONTAINER FOR DYNAMIC NOTIFICATIONS -->
+  <div id="toast-container" style="position: fixed; top: 24px; right: 28px; z-index: 9999; max-width: 380px;"></div>
+
+  <div class="app-container">
+    
+    <!-- ======================================================================
+         1. SIDEBAR NAVIGATION
+         ====================================================================== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+          </svg>
+        </div>
+        <div class="brand-info">
+          <div class="brand-title">
+            Smart Farm 1
+            <span class="brand-badge">Zone 1</span>
+          </div>
+          <span class="brand-subtitle">ISIMA Mahdia • Precision Agro</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Supervision Zone 1</div>
+        
+        <a href="#overview" class="nav-link active" data-target="overview">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </span>
+          Tableau de Bord
+        </a>
+
+        <a href="#sensors" class="nav-link" data-target="sensors">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </span>
+          Capteurs & Sol
+        </a>
+
+        <a href="#reservoir" class="nav-link" data-target="reservoir">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          </span>
+          Réservoir d'Eau
+          <span class="nav-counter" id="reservoir-side-pct">75%</span>
+        </a>
+
+        <a href="#analytics" class="nav-link" data-target="analytics">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </span>
+          Analyses & Tendances
+        </a>
+
+        <div class="nav-section-title">Banc d'Essai ESP32</div>
+
+        <a href="#hardware" class="nav-link" data-target="hardware">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+          </span>
+          LCD & 3 LEDs
+          <span class="nav-counter" id="nav-alert-counter">0</span>
+        </a>
+
+        <a href="#ai" class="nav-link" data-target="ai">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 14a4 4 0 1 1 4-4 4 4 0 0 1-4 4z"/></svg>
+          </span>
+          Automatisation & IA
+        </a>
+
+        <a href="#settings" class="nav-link" data-target="settings">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </span>
+          Paramètres & Moniteur
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status-pill">
+          <div class="status-indicator">
+            <span class="status-dot normal">
+              <span class="status-ping"></span>
+            </span>
+            <span class="global-status-text">ZONE 1 : NOMINALE</span>
+          </div>
+          <span style="font-size:0.7rem; color:var(--text-muted);" id="last-update-time">--:--:--</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ======================================================================
+         2. MAIN WRAPPER (TOPBAR + CONTENT TABS)
+         ====================================================================== -->
+    <div class="main-wrapper">
+      
+      <!-- TOP STICKY HEADER -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <div class="page-title-group">
+            <h1 id="page-header-title">Tableau de Bord — Zone 1</h1>
+            <p id="page-header-sub">Supervision complète de la Serre Maraîchère, télémétrie en temps réel et état général</p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Data Source Status Badge -->
+          <span class="source-badge simulated" id="source-type-badge">
+            <span class="status-dot alert" style="width:7px; height:7px;"></span>
+            DEMO / SIMULATION LOGICBENCH
+          </span>
+
+          <!-- Theme Toggle (Light / Dark) -->
+          <button class="btn btn-icon-only" id="theme-toggle-btn" title="Basculer Mode Clair / Mode Sombre">
+            <span id="theme-toggle-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            </span>
+          </button>
+
+          <!-- Hardware Connect Button (Web Serial API) -->
+          <button class="btn btn-primary" id="btn-connect-serial">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Connecter ESP32 USB
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTENT CONTAINER -->
+      <main class="content-area">
+
+        <!-- ====================================================================
+             TAB 1: TABLEAU DE BORD (OVERVIEW ZONE 1)
+             ==================================================================== -->
+        <section class="tab-pane active" id="tab-overview">
+          
+          <!-- HERO BANNER -->
+          <div class="hero-stats-banner">
+            <svg class="hero-pattern" viewBox="0 0 100 100" fill="currentColor">
+              <path d="M50 0 L100 50 L50 100 L0 50 Z" />
+            </svg>
+
+            <div class="hero-main-info">
+              <h2>Smart Farm 1 — Serre Maraîchère (Zone 1)</h2>
+              <p>Système intelligent de surveillance micro-climatique et d'humidité du sol sur ESP32. Signalisation d'état par LEDs tricolores et protection automatisée de la réserve d'eau.</p>
+              
+              <div class="hero-badges-row">
+                <span class="hero-mini-badge">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>
+                  Projet PFE ISIMA Mahdia
+                </span>
+                <span class="hero-mini-badge">
+                  Mode : <strong id="control-mode-badge" style="margin-left:4px;">AUTOMATIQUE</strong>
+                </span>
+                <span class="hero-mini-badge">
+                  Banc d'Essai : ESP32 + DHT22 + Sol + LDR
+                </span>
+              </div>
+            </div>
+
+            <div class="hero-quick-metrics">
+              <div class="hero-metric-tile">
+                <span class="label">Régime Zone 1</span>
+                <span class="value global-status-text" style="font-size:1.15rem; color:#86efac;">NOMINALE</span>
+                <span class="sub">Toutes grandeurs conformes</span>
+              </div>
+              <div class="hero-metric-tile">
+                <span class="label">Réserve d'Eau (HC-SR04)</span>
+                <span class="value" id="tank-percent-label">75%</span>
+                <span class="sub" id="tank-volume-label">3 750 L disponibles</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4 KPI CARDS -->
+          <div class="kpi-grid">
+            <!-- Temp Card -->
+            <div class="kpi-card temp">
+              <div class="kpi-header">
+                <span class="kpi-title">Température Ambiante</span>
+                <div class="kpi-icon-wrap" style="color:#f97316;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+                </div>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpi-temp-val">24.5</span>
+                <span class="kpi-unit">°C</span>
+                <span class="kpi-badge normal" id="kpi-temp-badge">Normal</span>
+              </div>
+              <div class="kpi-footer">
+                <span>Capteur : DHT22 (GPIO 4)</span>
+                <span>Seuil alerte : &ge; 30.0 °C</span>
+              </div>
+            </div>
+
+            <!-- Air Humidity Card -->
+            <div class="kpi-card air-hum">
+              <div class="kpi-header">
+                <span class="kpi-title">Humidité de l'Air</span>
+                <div class="kpi-icon-wrap" style="color:#0ea5e9;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                </div>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpi-airhum-val">58</span>
+                <span class="kpi-unit">% HR</span>
+                <span class="kpi-badge normal">Optimal</span>
+              </div>
+              <div class="kpi-footer">
+                <span>Capteur : DHT22 (GPIO 4)</span>
+                <span>Plage : 30% — 80%</span>
+              </div>
+            </div>
+
+            <!-- Soil Moisture Card -->
+            <div class="kpi-card soil-hum">
+              <div class="kpi-header">
+                <span class="kpi-title">Humidité du Sol</span>
+                <div class="kpi-icon-wrap" style="color:#10b981;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 20h10M10 20c0-3 2-4 2-6s-2-3-2-6 2-4 2-4-2 1-2 4 2 4 2 6-2 3-2 6z"/></svg>
+                </div>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpi-soilhum-val">58</span>
+                <span class="kpi-unit">%</span>
+                <span class="kpi-badge normal" id="kpi-soil-badge">Humidifié</span>
+              </div>
+              <div class="kpi-footer">
+                <span>Entrée ADC : GPIO 34</span>
+                <span>Sec : &ge; 2800 | Danger : &ge; 3500</span>
+              </div>
+            </div>
+
+            <!-- Light LDR Card -->
+            <div class="kpi-card light">
+              <div class="kpi-header">
+                <span class="kpi-title">Luminosité Ambiante</span>
+                <div class="kpi-icon-wrap" style="color:#f59e0b;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                </div>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpi-light-val">1850</span>
+                <span class="kpi-unit">ADC</span>
+                <span class="kpi-badge normal">Éclairé</span>
+              </div>
+              <div class="kpi-footer">
+                <span>Module : LDR LM393 (GPIO 35)</span>
+                <span>Seuil faible : &lt; 1000</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- DEDICATED ZONE 1 LIVE STATUS CARD -->
+          <div class="zone-card zone-1-active" id="zone-1-card" style="margin-bottom:28px;">
+            <div class="zone-header">
+              <div class="zone-title-group">
+                <h3>
+                  Zone 1 — Serre Maraîchère Principale
+                  <span class="brand-badge" style="background:rgba(82,183,136,0.2); color:#22c55e;">ESP32 ACTIF</span>
+                </h3>
+                <span class="zone-crop-tag">Culture sous serre : Tomates, Poivrons & Concombres</span>
+              </div>
+              <span class="zone-status-badge kpi-badge normal">NORMAL</span>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; margin: 12px 0 20px;">
+              <div class="sensor-row">
+                <div class="sensor-info">
+                  <svg class="sensor-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+                  Température Air
+                </div>
+                <div class="sensor-reading">
+                  <span class="sensor-val zone-temp-val">24.5 °C</span>
+                </div>
+              </div>
+
+              <div class="sensor-row">
+                <div class="sensor-info">
+                  <svg class="sensor-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                  Humidité Air
+                </div>
+                <div class="sensor-reading">
+                  <span class="sensor-val zone-air-val">58 %</span>
+                </div>
+              </div>
+
+              <div class="sensor-row">
+                <div class="sensor-info">
+                  <svg class="sensor-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 20h10M10 20c0-3 2-4 2-6s-2-3-2-6 2-4 2-4-2 1-2 4 2 4 2 6-2 3-2 6z"/></svg>
+                  Humidité Sol
+                </div>
+                <div class="sensor-reading">
+                  <span class="sensor-val zone-soil-val">58 % (2150)</span>
+                </div>
+              </div>
+
+              <div class="sensor-row">
+                <div class="sensor-info">
+                  <svg class="sensor-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                  Luminosité LDR
+                </div>
+                <div class="sensor-reading">
+                  <span class="sensor-val zone-light-val">1850 lux eq.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Signalisation 3 LEDs Row -->
+            <div class="hardware-pills-row">
+              <span class="hw-pill-label">Signalisation 3 LEDs :</span>
+              <span class="hw-led-dot green lit" title="LED Verte (GPIO 19) : État Normal"></span>
+              <span style="font-size:0.75rem; color:var(--text-secondary); margin-right:8px;">Vert (Normal)</span>
+              <span class="hw-led-dot yellow" title="LED Jaune (GPIO 21) : Alerte"></span>
+              <span style="font-size:0.75rem; color:var(--text-secondary); margin-right:8px;">Jaune (Alerte)</span>
+              <span class="hw-led-dot red" title="LED Rouge (GPIO 22) : Danger"></span>
+              <span style="font-size:0.75rem; color:var(--text-secondary);">Rouge (Danger)</span>
+            </div>
+
+            <div class="zone-footer">
+              <span class="irrigation-cycle-info">Cycles arrosage : <strong>14 aujourd'hui (42 min cumulées)</strong></span>
+              <button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="switchTab('hardware')">Voir Banc Matériel &rarr;</button>
+            </div>
+          </div>
+
+          <!-- REAL-TIME GRAPH (OVERVIEW) -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title-group">
+                <h3>Télémétrie en Direct (ESP32 Zone 1)</h3>
+                <p style="font-size:0.8rem; color:var(--text-muted);">Évolution temporelle de la température, de l'humidité de l'air et du sol</p>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-secondary" id="btn-export-csv" style="font-size:0.75rem; padding:6px 12px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Exporter CSV
+                </button>
+              </div>
+            </div>
+            <div class="chart-container-box">
+              <canvas id="overviewLiveChart"></canvas>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ====================================================================
+             TAB 2: CAPTEURS & TÉLÉMÉTRIE DÉTAILLÉE (SENSORS)
+             ==================================================================== -->
+        <section class="tab-pane" id="tab-sensors">
+          
+          <div class="overview-top-bar">
+            <div>
+              <h2 style="font-family:var(--font-display); font-size:1.35rem;">Diagnostic Avancé des Capteurs — Zone 1</h2>
+              <p style="font-size:0.82rem; color:var(--text-muted);">Paramètres physiques, étalonnage du sol et conditions environnementales</p>
+            </div>
+          </div>
+
+          <div class="chart-card" style="margin-bottom:24px;">
+            <div class="chart-header">
+              <div>
+                <h3 style="display:flex; align-items:center; gap:8px;">
+                  Sondes & Chaîne d'Acquisition Zone 1
+                  <span class="brand-badge" style="background:rgba(34,197,94,0.15); color:#22c55e;">LogicBench Prototype</span>
+                </h3>
+                <p style="font-size:0.8rem; color:var(--text-muted);">Acquisition sur microcontrôleur ESP32-WROOM-32 (115200 bauds)</p>
+              </div>
+              <span class="kpi-badge normal" style="font-size:0.85rem;">STATUT : CONFORME</span>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; margin: 16px 0 24px;">
+              <div class="res-data-tile">
+                <div class="label">Sonde Sol GPIO 34</div>
+                <div class="val" id="zone1-soil-raw-focus">2150 ADC</div>
+                <div class="hint">Sol humidifié (58%) • Seuil sec : 2800</div>
+              </div>
+              <div class="res-data-tile">
+                <div class="label">Thermomètre DHT22 GPIO 4</div>
+                <div class="val" id="zone1-dht-temp-focus">24.5 °C</div>
+                <div class="hint">Alerte : &ge; 30°C • Danger : &ge; 35°C</div>
+              </div>
+              <div class="res-data-tile">
+                <div class="label">Hygromètre DHT22</div>
+                <div class="val" id="zone1-dht-hum-focus">58 % HR</div>
+                <div class="hint">Plage confort : 30% — 80%</div>
+              </div>
+              <div class="res-data-tile">
+                <div class="label">Photodiode LDR GPIO 35</div>
+                <div class="val" id="zone1-ldr-focus">1850 ADC</div>
+                <div class="hint">Ensoleillement satisfaisant (&gt; 1000)</div>
+              </div>
+            </div>
+
+            <!-- Agronomic Guidance Card -->
+            <div style="background-color:var(--bg-card-subtle); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:18px;">
+              <h4 style="font-size:0.92rem; font-weight:700; margin-bottom:6px; color:var(--text-main);">Diagnostic Agronomique — Serre Maraîchère :</h4>
+              <p style="font-size:0.82rem; color:var(--text-secondary); line-height:1.6;">
+                La température de 24.5°C et l'hygrométrie relative de 58% sont situées dans la zone de confort thermique optimale pour les cultures maraîchères (tomates et poivrons). Le sol présente une réserve hydrique suffisante à 58% (valeur brute ADC 2150, bien en deçà du seuil de sécheresse fixé à 2800).
+              </p>
+            </div>
+          </div>
+
+          <!-- Soil Calibration Specs -->
+          <div class="chart-card">
+            <h3 style="margin-bottom:8px;">Étalonnage & Caractérisation de la Sonde d'Humidité du Sol</h3>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:16px;">
+              Détail des bornes de conversion analogique-numérique (ADC 12 bits, plage 0–4095) :
+            </p>
+
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px;">
+              <div class="res-data-tile">
+                <div class="label">Sol Complètement Sec (0 %)</div>
+                <div class="val">3 500 ADC</div>
+                <div class="hint">Valeur de référence air / substrat sec</div>
+              </div>
+              <div class="res-data-tile">
+                <div class="label">Seuil Début Sécheresse</div>
+                <div class="val">2 800 ADC</div>
+                <div class="hint">Déclenchement LED Jaune (Alerte)</div>
+              </div>
+              <div class="res-data-tile">
+                <div class="label">Sol Saturé en Eau (100 %)</div>
+                <div class="val">1 200 ADC</div>
+                <div class="hint">Capacité au champ / immersion</div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ====================================================================
+             TAB 3: RÉSERVOIR D'EAU & HC-SR04 (RESERVOIR)
+             ==================================================================== -->
+        <section class="tab-pane" id="tab-reservoir">
+          
+          <div class="overview-top-bar">
+            <div>
+              <h2 style="font-family:var(--font-display); font-size:1.35rem;">Réservoir d'Eau Commun & Capteur HC-SR04</h2>
+              <p style="font-size:0.82rem; color:var(--text-muted);">Mesure hydrostatique par ultrasons, volume de stockage et coupure de protection de la pompe</p>
+            </div>
+          </div>
+
+          <div class="reservoir-section">
+            
+            <!-- TANK VISUAL CYLINDER CARD -->
+            <div class="reservoir-tank-card" id="reservoir-card">
+              <h3 style="font-family:var(--font-display); font-size:1.1rem; color:var(--text-main);">Cuve Principale d'Irrigation</h3>
+              <span style="font-size:0.75rem; color:var(--text-muted);">Alimentation de la Serre Maraîchère Zone 1</span>
+
+              <div class="tank-visual-container">
+                <!-- HC-SR04 Sensor Unit on Top -->
+                <div class="hc-sr04-sensor" title="Capteur Ultrasonique HC-SR04 (Trig / Echo)">
+                  <div class="ultrasonic-transducer" title="Émetteur 40kHz"></div>
+                  <div class="ultrasonic-transducer" title="Récepteur 40kHz"></div>
+                </div>
+
+                <!-- Cylindrical Tank Shell -->
+                <div class="tank-shell">
+                  <div class="tank-water" id="tank-water-level" style="height: 75%;">
+                    <div class="water-wave"></div>
+                  </div>
+
+                  <!-- Central Metric Overlay -->
+                  <div class="tank-overlay-metric">
+                    <div class="tank-percent" id="tank-percent-big">75%</div>
+                    <div class="tank-volume" id="tank-liters-big">3 750 L</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:600; color:var(--text-secondary);">
+                <span class="status-dot normal" style="width:8px; height:8px;"></span>
+                Vanne d'alimentation : Connectée
+              </div>
+            </div>
+
+            <!-- TANK PHYSICAL TELEMETRY DETAILS -->
+            <div class="reservoir-details-card">
+              <h3 style="font-family:var(--font-display); font-size:1.15rem; margin-bottom:4px;">Télémétrie du Capteur HC-SR04</h3>
+              <p style="font-size:0.8rem; color:var(--text-muted);">Données physiques ultrasoniques et équations de hauteur d'eau</p>
+
+              <div class="reservoir-data-grid">
+                <div class="res-data-tile">
+                  <div class="label">Distance Ultrason (HC-SR04)</div>
+                  <div class="val" id="tank-distance-val">50 cm</div>
+                  <div class="hint">Distance sommet cuve &rarr; surface de l'eau</div>
+                </div>
+
+                <div class="res-data-tile">
+                  <div class="label">Hauteur d'Eau Effective</div>
+                  <div class="val" id="tank-height-val">150 cm</div>
+                  <div class="hint">Profondeur totale : 200 cm</div>
+                </div>
+
+                <div class="res-data-tile">
+                  <div class="label">Volume Estimé Disponible</div>
+                  <div class="val" id="tank-volume-tile">3 750 L</div>
+                  <div class="hint">Capacité maximale : 5 000 Litres</div>
+                </div>
+              </div>
+
+              <!-- Equation Explanation Box -->
+              <div style="background-color:var(--bg-card-subtle); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:18px; margin-bottom:20px;">
+                <h4 style="font-size:0.85rem; font-weight:700; color:var(--text-main); margin-bottom:8px;">Équation Hydrostatique Implémentée :</h4>
+                <div style="font-family:var(--font-mono); font-size:0.82rem; color:var(--color-sage-400); background:rgba(0,0,0,0.2); padding:10px 14px; border-radius:var(--radius-sm); margin-bottom:10px;">
+                  Niveau (%) = [ ( Hauteur_Max - Distance_HCSR04 ) / Hauteur_Max ] &times; 100
+                </div>
+                <p style="font-size:0.78rem; color:var(--text-muted);">
+                  Lorsque la distance mesurée dépasse 160 cm (niveau d'eau restant &lt; 20%), le système déclenche automatiquement l'alerte de seuil critique et coupe l'alimentation électrique de la pompe d'irrigation pour empêcher tout fonctionnement à sec.
+                </p>
+              </div>
+
+              <!-- PUMP PROTECTION ALERT BANNER -->
+              <div class="pump-protection-alert" id="pump-protection-status">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <div>
+                  <strong>Pompe d'Irrigation Opérationnelle</strong>
+                  <div style="font-size:0.75rem; opacity:0.85">Niveau de réserve suffisant. Aucun risque de cavitation ou de marche à sec.</div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ====================================================================
+             TAB 4: ANALYSES & TENDANCES (ANALYTICS)
+             ==================================================================== -->
+        <section class="tab-pane" id="tab-analytics">
+          
+          <div class="overview-top-bar">
+            <div>
+              <h2 style="font-family:var(--font-display); font-size:1.35rem;">Analyses & Évolution des Grandeurs (Zone 1)</h2>
+              <p style="font-size:0.82rem; color:var(--text-muted);">Historique graphique, corrélation humidité-température et distribution des états</p>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <button class="btn btn-primary" onclick="window.FarmAnalytics.exportCSV()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Exporter Télémétrie CSV
+              </button>
+            </div>
+          </div>
+
+          <div class="analytics-grid">
+            <!-- Soil Dynamics Chart -->
+            <div class="chart-card">
+              <div class="chart-header">
+                <div>
+                  <h3>Dynamique du Sol & Seuils Critiques</h3>
+                  <p style="font-size:0.8rem; color:var(--text-muted);">Comparaison entre la valeur brute ADC 12 bits et les seuils d'Alerte (2800) et de Danger (3500)</p>
+                </div>
+              </div>
+              <div class="chart-container-box">
+                <canvas id="soilAnalyticsChart"></canvas>
+              </div>
+            </div>
+
+            <!-- State Distribution Doughnut -->
+            <div class="chart-card">
+              <div class="chart-header">
+                <div>
+                  <h3>Distribution des Régimes</h3>
+                  <p style="font-size:0.8rem; color:var(--text-muted);">Proportion de temps en régime Nominal, Alerte et Danger</p>
+                </div>
+              </div>
+              <div class="chart-container-box" style="height:260px;">
+                <canvas id="stateDistributionChart"></canvas>
+              </div>
+              <div style="text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:12px;">
+                Taux de conformité agronomique globale : <strong style="color:var(--color-sage-400);">96.0%</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Light Spectrum Chart -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <h3>Cycle Solaire & Luminosité Ambiante (LDR LM393)</h3>
+                <p style="font-size:0.8rem; color:var(--text-muted);">Évolution de l'indice photométrique reçu sur le GPIO 35</p>
+              </div>
+            </div>
+            <div class="chart-container-box" style="height:250px;">
+              <canvas id="envAnalyticsChart"></canvas>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ====================================================================
+             TAB 5: COMPOSANTS PHYSIQUES & SIGNALISATION (HARDWARE)
+             ==================================================================== -->
+        <section class="tab-pane" id="tab-hardware">
+          
+          <div class="overview-top-bar">
+            <div>
+              <h2 style="font-family:var(--font-display); font-size:1.35rem;">Banc d'Essai ESP32 — Zone 1 (LCD & 3 LEDs)</h2>
+              <p style="font-size:0.82rem; color:var(--text-muted);">Visualisation photoréaliste de l'afficheur LCD 16x4, des 3 LEDs d'état et schéma de câblage</p>
+            </div>
+          </div>
+
+          <div class="hardware-lab-grid">
+            
+            <!-- VIRTUAL LCD 16x4 MODULE -->
+            <div class="lcd-module-card">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="font-family:var(--font-display); font-size:1.15rem; color:var(--text-main);">Afficheur LCD 16x4 Parallèle (Mode 4-bit)</h3>
+                <span class="brand-badge">GPIO 13, 14, 25, 26, 27, 32</span>
+              </div>
+              <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">Simulation fidèle de la bibliothèque LiquidCrystal et de la routine <code>updateLCD()</code></p>
+
+              <!-- Physical LCD Bezel Frame -->
+              <div class="lcd-bezel-wrapper">
+                <span class="lcd-brand-print">HD44780 COMPATIBLE • 16x4 CHARACTERS</span>
+                
+                <div class="lcd-screen">
+                  <div class="lcd-line" id="lcd-line-0">SMART FARM ZONE1</div>
+                  <div class="lcd-line" id="lcd-line-1">T:24.5C H:58%   </div>
+                  <div class="lcd-line" id="lcd-line-2">Soil: 2150      </div>
+                  <div class="lcd-line" id="lcd-line-3">STATE: NORMAL   </div>
+                </div>
+              </div>
+
+              <div style="font-size:0.75rem; color:var(--text-muted); display:flex; justify-content:space-between;">
+                <span>Broches : RS=13 | EN=14 | D4=25 | D5=26 | D6=27 | D7=32</span>
+                <span>Rétroéclairage : Vert LCD</span>
+              </div>
+            </div>
+
+            <!-- PHYSICAL 3-LED FIXTURE -->
+            <div class="leds-bench-card">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="font-family:var(--font-display); font-size:1.15rem; color:var(--text-main);">Signalisation Tricolore par LEDs</h3>
+                <span class="brand-badge">GPIO 19, 21, 22</span>
+              </div>
+              <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">Indicateurs visuels physiques gérés par <code>setOutputs()</code></p>
+
+              <div class="leds-fixture">
+                <!-- Green LED -->
+                <div class="led-fixture-unit">
+                  <div class="led-socket">
+                    <div class="led-bulb green-led lit" id="hw-led-green"></div>
+                  </div>
+                  <span class="led-label">NORMAL</span>
+                  <span class="led-gpio-badge">GPIO 19</span>
+                </div>
+
+                <!-- Yellow LED -->
+                <div class="led-fixture-unit">
+                  <div class="led-socket">
+                    <div class="led-bulb yellow-led" id="hw-led-yellow"></div>
+                  </div>
+                  <span class="led-label">ALERTE</span>
+                  <span class="led-gpio-badge">GPIO 21</span>
+                </div>
+
+                <!-- Red LED -->
+                <div class="led-fixture-unit">
+                  <div class="led-socket">
+                    <div class="led-bulb red-led" id="hw-led-red"></div>
+                  </div>
+                  <span class="led-label">DANGER</span>
+                  <span class="led-gpio-badge">GPIO 22</span>
+                </div>
+              </div>
+
+              <!-- Output Logic Description Box -->
+              <div style="padding:14px 18px; border-radius:var(--radius-md); background:var(--bg-card-subtle); border:1px solid var(--border-subtle);">
+                <strong style="font-size:0.88rem; color:var(--text-main);">Logique des Sorties :</strong>
+                <ul style="font-size:0.78rem; color:var(--text-secondary); margin-top:6px; padding-left:18px; line-height:1.6;">
+                  <li><strong>LED Verte (GPIO 19)</strong> : Allumée si toutes les conditions sont conformes (Normal).</li>
+                  <li><strong>LED Jaune (GPIO 21)</strong> : Allumée en cas d'alerte (Temp &ge; 30°C, Sol sec &ge; 2800, ou défaillance DHT).</li>
+                  <li><strong>LED Rouge (GPIO 22)</strong> : Allumée en cas de danger critique (Temp &ge; 35°C ou Sol &ge; 3500).</li>
+                </ul>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- WIRING SCHEMATIC & OFFICIAL PINOUT -->
+          <div class="wiring-view-card">
+            <div class="chart-header">
+              <div>
+                <h3>Schéma de Câblage Officiel (Guide ESP32 DevKit Zone 1)</h3>
+                <p style="font-size:0.8rem; color:var(--text-muted);">Schéma de câblage officiel pour banc de test LogicBench et montage réel</p>
+              </div>
+              <button class="btn btn-secondary" id="btn-zoom-wiring">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                Agrandir Schéma
+              </button>
+            </div>
+
+            <div class="wiring-preview-box">
+              <img src="assets/wiring_guide_zone1.png" alt="Smart Farm Zone 1 Wiring Guide" id="wiring-preview-img" title="Cliquer pour agrandir le schéma complet">
+            </div>
+
+            <!-- Pinout Summary Grid (Buzzer removed) -->
+            <div class="pin-mapping-grid">
+              <div class="pin-tile">
+                <span class="pin-id">GPIO 4</span>
+                <span class="pin-role">DHT22 (Data bus)</span>
+              </div>
+              <div class="pin-tile">
+                <span class="pin-id">GPIO 34</span>
+                <span class="pin-role">Capteur Sol (ADC 12b)</span>
+              </div>
+              <div class="pin-tile">
+                <span class="pin-id">GPIO 35</span>
+                <span class="pin-role">Module LDR LM393</span>
+              </div>
+              <div class="pin-tile">
+                <span class="pin-id">GPIO 19</span>
+                <span class="pin-role">LED Verte (Normal)</span>
+              </div>
+              <div class="pin-tile">
+                <span class="pin-id">GPIO 21</span>
+                <span class="pin-role">LED Jaune (Alerte)</span>
+              </div>
+              <div class="pin-tile">
+                <span class="pin-id">GPIO 22</span>
+                <span class="pin-role">LED Rouge (Danger)</span>
+              </div>
+              <div class="pin-tile">
+                <span class="pin-id">GPIO 13, 14</span>
+                <span class="pin-role">LCD RS & EN</span>
+              </div>
+              <div class="pin-tile">
+                <span class="pin-id">GPIO 25, 26, 27, 32</span>
+                <span class="pin-role">LCD Données D4-D7</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ALERTS LOG & JOURNAL TABLE -->
+          <div class="alerts-table-card">
+            <div class="chart-header">
+              <div>
+                <h3>Journal des Événements & Alertes Firmware (Zone 1)</h3>
+                <p style="font-size:0.8rem; color:var(--text-muted);">Historique horodaté des alertes déclenchées par l'ESP32 avec causes réelles</p>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Horodatage</th>
+                    <th>Origine</th>
+                    <th>Gravité</th>
+                    <th>Cause Diagnostiquée</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="alerts-table-body">
+                  <!-- Populated by JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ====================================================================
+             TAB 6: AUTOMATISATION & IA (AI & AUTOMATION)
+             ==================================================================== -->
+        <section class="tab-pane" id="tab-ai">
+          
+          <div class="overview-top-bar">
+            <div>
+              <h2 style="font-family:var(--font-display); font-size:1.35rem;">Automatisation & Intelligence Agronomique</h2>
+              <p style="font-size:0.82rem; color:var(--text-muted);">Modes de régulation et détection automatisée du stress hydrique</p>
+            </div>
+          </div>
+
+          <!-- 3 Control Modes Selection -->
+          <div class="ai-modes-grid">
+            <div class="mode-selector-card" data-mode="manual">
+              <div class="mode-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+              </div>
+              <h4>Mode Manuel</h4>
+              <p>Contrôle forcé des vannes et de la pompe d'irrigation par l'utilisateur, tout en conservant la protection anti-marche à sec.</p>
+            </div>
+
+            <div class="mode-selector-card active" data-mode="auto">
+              <div class="mode-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              </div>
+              <h4>Mode Automatique</h4>
+              <p>Application stricte des règles déterministes et des seuils physiques configurés dans le firmware ESP32 Zone 1.</p>
+            </div>
+
+            <div class="mode-selector-card" data-mode="ai">
+              <div class="mode-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              </div>
+              <h4>Mode Intelligent (IA)</h4>
+              <p>Analyse multi-paramètres prédisant l'évapotranspiration pour déclencher l'irrigation aux moments thermiques les plus favorables.</p>
+            </div>
+          </div>
+
+          <!-- Active AI Recommendations Box -->
+          <div class="recommendations-card">
+            <h3 style="font-family:var(--font-display); font-size:1.15rem; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+              Recommandations Intelligentes Générées par l'IA
+              <span class="brand-badge" style="background:rgba(82,183,136,0.18); color:var(--color-sage-400);">Moteur Actif</span>
+            </h3>
+
+            <div class="recommendation-item">
+              <div style="color:var(--color-sage-400); font-size:1.4rem;">🌱</div>
+              <div>
+                <strong style="font-size:0.9rem; color:var(--text-main);">Optimisation de l'Irrigation Zone 1 (Tomates)</strong>
+                <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:3px;">
+                  L'humidité du sol est stable à 58%. Il est suggéré de reporter l'arrosage au coucher du soleil (18h30) afin de réduire les pertes par évaporation superficielle de 35%.
+                </p>
+              </div>
+            </div>
+
+            <div class="recommendation-item">
+              <div style="color:#0ea5e9; font-size:1.4rem;">💧</div>
+              <div>
+                <strong style="font-size:0.9rem; color:var(--text-main);">Gestion de la Réserve d'Eau (HC-SR04)</strong>
+                <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:3px;">
+                  Le réservoir est à 75% (3 750 L). L'autonomie calculée pour la Zone 1 est de <strong>12 jours</strong> avec la consommation actuelle.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ====================================================================
+             TAB 7: PARAMÈTRES & MONITEUR SÉRIE (SETTINGS)
+             ==================================================================== -->
+        <section class="tab-pane" id="tab-settings">
+          
+          <div class="overview-top-bar">
+            <div>
+              <h2 style="font-family:var(--font-display); font-size:1.35rem;">Configuration des Seuils & Moniteur Série</h2>
+              <p style="font-size:0.82rem; color:var(--text-muted);">Paramètres modifiables de <code>smart_farm_zone1.ino</code> et console série en direct</p>
+            </div>
+          </div>
+
+          <!-- SCENARIO SWITCHER FOR LIVE DEMONSTRATION -->
+          <div class="chart-card" style="margin-bottom:24px;">
+            <h3 style="margin-bottom:8px;">Boutons de Démonstration pour Soutenance Universitaire</h3>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:16px;">
+              Déclenchez instantanément les conditions réelles pour illustrer devant le jury la réaction en chaîne du système (LEDs, LCD, Alertes).
+            </p>
+
+            <div style="display:flex; flex-wrap:wrap; gap:10px;">
+              <button class="btn btn-primary" data-scenario="normal">Conditions Normales (24°C, Sol 58% &rarr; LED Verte)</button>
+              <button class="btn btn-secondary" data-scenario="dry_soil">Sol Sec (Sol &ge; 2800 &rarr; LED Jaune)</button>
+              <button class="btn btn-secondary" data-scenario="heatwave_danger">Canicule & Sol Critique (Danger &rarr; LED Rouge)</button>
+              <button class="btn btn-secondary" data-scenario="low_light">Nuit / Faible Luminosité (LDR &lt; 1000)</button>
+              <button class="btn btn-secondary" data-scenario="dht_failure">Panne Capteur DHT22 (Erreur bus)</button>
+              <button class="btn btn-secondary" data-scenario="reservoir_critical">Cuve Critique (&lt; 20% Sécurité Pompe)</button>
+            </div>
+          </div>
+
+          <div class="settings-grid">
+            
+            <!-- THRESHOLDS FORM -->
+            <div class="settings-card">
+              <h3 style="font-family:var(--font-display); font-size:1.15rem; margin-bottom:16px;">Seuils Firmware Configurables</h3>
+              
+              <form id="thresholds-form">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+                  <div class="form-group">
+                    <label>TEMP_ALERT (°C)</label>
+                    <input type="number" step="0.5" class="form-control" id="input-temp-alert" value="30.0">
+                  </div>
+                  <div class="form-group">
+                    <label>TEMP_DANGER (°C)</label>
+                    <input type="number" step="0.5" class="form-control" id="input-temp-danger" value="35.0">
+                  </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+                  <div class="form-group">
+                    <label>SOIL_DRY (ADC brut)</label>
+                    <input type="number" class="form-control" id="input-soil-dry" value="2800">
+                  </div>
+                  <div class="form-group">
+                    <label>SOIL_DANGER (ADC brut)</label>
+                    <input type="number" class="form-control" id="input-soil-danger" value="3500">
+                  </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+                  <div class="form-group">
+                    <label>HUM_LOW (% HR)</label>
+                    <input type="number" class="form-control" id="input-hum-low" value="30.0">
+                  </div>
+                  <div class="form-group">
+                    <label>HUM_HIGH (% HR)</label>
+                    <input type="number" class="form-control" id="input-hum-high" value="80.0">
+                  </div>
+                </div>
+
+                <div style="margin-top:14px; display:flex; justify-content:flex-end;">
+                  <button type="submit" class="btn btn-primary">Enregistrer les Seuils</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- SERIAL MONITOR TERMINAL -->
+            <div class="serial-console-card">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="font-family:var(--font-display); font-size:1.15rem;">Moniteur Série (115200 bauds)</h3>
+                <button class="btn btn-secondary" id="btn-clear-console" style="padding:4px 8px; font-size:0.75rem;">Effacer</button>
+              </div>
+              <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Trames transmises par l'ESP32 sur la liaison série</p>
+
+              <div class="console-terminal" id="serial-terminal-output">
+                <div class="console-line">=== SMART FARM - ZONE 1 ===</div>
+                <div class="console-line">ESP32 + DHT22 + SOIL + LDR + LCD 16x4</div>
+                <div class="console-line">Serial Monitor initialise a 115200 bauds...</div>
+              </div>
+
+              <!-- Send Command Form (e.g. 'c' calibration mode) -->
+              <form id="serial-cmd-form" style="display:flex; gap:10px;">
+                <input type="text" class="form-control" id="serial-cmd-input" placeholder="Envoyer commande (ex: 'c' pour calibration sol)..." style="font-family:var(--font-mono); font-size:0.85rem;">
+                <button type="submit" class="btn btn-secondary">Envoyer</button>
+              </form>
+            </div>
+
+          </div>
+
+        </section>
+
+      </main>
+
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       WIRING MODAL POPUP
+       ====================================================================== -->
+  <div class="modal-backdrop" id="wiring-modal">
+    <div class="modal-box" style="max-width:850px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="font-family:var(--font-display); font-size:1.25rem;">Schéma Détaillé de Câblage ESP32 — Zone 1</h3>
+        <button class="btn btn-icon-only" id="close-wiring-modal">&times;</button>
+      </div>
+      <div style="background:#0b192c; border-radius:var(--radius-md); overflow:hidden; text-align:center; padding:12px;">
+        <img src="assets/wiring_guide_zone1.png" alt="Wiring Guide Full" style="max-width:100%; max-height:70vh; object-fit:contain;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/integration.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/analytics.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

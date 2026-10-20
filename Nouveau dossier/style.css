@@ -1,0 +1,46 @@
+:root {
+  color-scheme: dark;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  --ink: #e6e1d4;
+  --muted: #9e9c92;
+  --panel: rgba(15, 17, 17, 0.86);
+  --red: #c74d43;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: #090b0b; color: var(--ink); }
+body { display: grid; place-items: center; overflow: hidden; }
+.game-shell { width: min(100vw, 1280px); padding: 18px; }
+.game-frame { position: relative; overflow: hidden; border: 1px solid #52524a; background: #161918; box-shadow: 0 22px 70px #000b; aspect-ratio: 16 / 9; }
+canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+.hud { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 24px; }
+.hud-top, .hud-bottom { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+.brand { letter-spacing: .15em; font-weight: 900; font-size: clamp(16px, 2vw, 25px); text-shadow: 2px 2px #000; }
+.brand span { display: block; color: #f1ead8; }
+.brand small, .clock small, .objective span, .equipment span, .vital span, .eyebrow { display: block; color: var(--muted); font-size: 9px; letter-spacing: .16em; }
+.objective { min-width: 260px; padding: 9px 13px; border-left: 2px solid var(--red); background: linear-gradient(90deg, #171b1bdd, #171b1b00); }
+.objective strong { font-size: 13px; font-weight: 500; }
+.clock { text-align: right; font-size: 14px; font-weight: bold; }
+.hud-bottom { align-items: end; }
+.vitals { min-width: 300px; padding: 10px 12px; background: var(--panel); border: 1px solid #65645b; }
+.vital { display: grid; grid-template-columns: 75px 1fr 30px; align-items: center; gap: 8px; margin: 5px 0; font-size: 11px; }
+.vital b { text-align: right; font-size: 11px; }
+.bar { height: 7px; background: #343733; border: 1px solid #000; }
+.bar i { display: block; height: 100%; width: 100%; transition: width .2s ease; }
+.health { background: #c74d43; }.stamina { background: #d2a84f; }.hunger { background: #819b65; }.thirst { background: #5f9da3; }
+.equipment { min-width: 260px; padding: 11px 14px; background: var(--panel); border-right: 2px solid var(--red); text-align: right; }
+.equipment strong { display: block; font-size: 13px; margin: 4px 0; }
+.equipment small { color: #aaa89e; font-size: 9px; letter-spacing: .06em; }
+.notification { align-self: center; min-height: 24px; padding: 7px 14px; opacity: 0; transform: translateY(8px); background: #101313e8; border: 1px solid #8c8571; color: #f3ead5; font-size: 12px; transition: .25s ease; }
+.notification.show { opacity: 1; transform: translateY(0); }
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; background: #050606b8; pointer-events: auto; }
+.hidden { display: none; }
+.panel { width: min(420px, 80%); padding: 34px; border: 1px solid #8d8876; background: #161918f2; box-shadow: 0 14px 35px #0009; }
+.panel h1 { margin: 4px 0 10px; letter-spacing: .18em; }
+.panel p:not(.eyebrow) { color: #bbb9ae; line-height: 1.5; }
+button { margin-top: 15px; border: 1px solid #bd5449; background: #63251f; color: #f7e9d6; padding: 12px 15px; font-weight: 800; letter-spacing: .08em; cursor: pointer; }
+button span { margin-left: 20px; color: #d3b8a7; font-size: 10px; }
+@media (max-width: 700px) {
+  .game-shell { padding: 0; width: 100vw; }.hud { padding: 10px; }
+  .objective, .equipment { display: none; }.vitals { min-width: 230px; }.vital { grid-template-columns: 58px 1fr 25px; }
+}
